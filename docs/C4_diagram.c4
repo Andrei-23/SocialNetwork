@@ -1,0 +1,100 @@
+specification {
+  element actor {
+    style {
+      shape person
+      color secondary
+    }
+  }
+  element system
+  element container
+  element component
+}
+
+model {
+  user = actor 'User' {
+    description 'A user of the social network'
+  }
+
+  apiSystem = system 'API System' {
+    description 'API thing'
+    webPage = container 'Web Page' 'Allows to use the social network through web-browser'
+    mobileApp = container 'Mobile App' 'Allows to use the social network through a phone application'
+    apiApplication = container 'API Application' 'Provides functionality to web-page and apps'
+    apiDatabase = container 'Database' 'Contains user registration/authentiaction data and access logs' 
+  }
+  userSystem = system 'User System' {
+    description 'Provides user registration and authentication, stores user data'
+    signInContainer = container 'Sign In Container' 'Allows users to sign in'
+    createPostContainer = container 'Post Creation' 'Allows users to publish posts'
+    createCommentContainer = container 'Comment Creation' 'Allows users to publish comment'
+    feedViewContainer = container 'Feed View' 'Allows users to see posts of other users'
+    userStatsMessageBroker = container 'Message Broker' 'Sends messages from user to statistic system'
+    feedGenerationContainer = container 'Feed Generation' 'Chooses posts that user will see based on his activity'
+    userDatabase = container 'Database'
+  }
+  statisticSystem = system 'Statistic System' {
+    description 'Stores statisics of likes, views and comments'
+    statisticContainer = container 'Statistics' 'Controls social network statistics'
+    statisticDatabase = container 'Database'
+  }
+  contentSystem = system 'Content System' {
+    description 'Provides posts and comments'
+    postContainer = container 'Post Container' 'Posts functionality'
+    commentContainer = container 'Comment Container' 'Comments functionality'
+    contentDatabase = container 'Database'
+  }
+
+  user -> mobileApp 'uses'
+  user -> webPage 'uses'
+  mobileApp -> apiApplication 'sends API calls'
+  webPage -> apiApplication 'sends API calls'
+
+  apiApplication -> signInContainer 'sends API calls'
+  apiApplication -> createPostContainer 'sends API calls'
+  apiApplication -> createCommentContainer 'sends API calls'
+  apiApplication -> feedViewContainer 'sends API calls'
+  apiApplication -> apiDatabase 'uses'
+
+  signInContainer -> userDatabase 'reads/writes registration data'
+  feedViewContainer -> userDatabase 'save views/likes data to update reccomendations'
+  userDatabase -> feedGenerationContainer 'read user activity'
+  createPostContainer -> userStatsMessageBroker 'uses'
+  createCommentContainer -> userStatsMessageBroker 'uses'
+  feedViewContainer -> userStatsMessageBroker 'uses'
+  userStatsMessageBroker -> statisticContainer 'send message from user to statistic system'
+
+  createPostContainer -> postContainer 'send create request'
+  createCommentContainer -> commentContainer 'send create request'
+  postContainer -> feedGenerationContainer 'load posts'
+  postContainer -> contentDatabase 'uses'
+  commentContainer -> feedGenerationContainer 'load comments'
+  commentContainer -> contentDatabase 'uses'
+  feedGenerationContainer -> feedViewContainer 'show posts'
+
+  statisticContainer -> statisticDatabase 'uses'
+  statisticContainer -> apiApplication 'sends statistic api'
+}
+
+views {
+  view index {
+    title 'Landscape'
+    include *
+  }
+  view of apiSystem{
+    include *
+  }
+  view of userSystem{
+    include *
+  }
+  view of statisticSystem{
+    include *
+  }
+  view of contentSystem{
+    include *
+  }
+
+  style apiDatabase, userDatabase, statisticDatabase, contentDatabase {
+    shape cylinder
+    color secondary
+  }
+}
